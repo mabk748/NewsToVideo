@@ -9,6 +9,6 @@ def test_blank():
 
 def test_getters():
     dir = Path("./testDir")
-    assert get_audio(dir) == [Path("./testDir/file.aud")]
-    assert get_video(dir) == [Path("./testDir/file.vid")]
-    assert get_images(dir) == [Path("./testDir/file.im")]
+    assert get_content("audio", dir) == [Path("./testDir/file.aud")]
+    assert get_content("video", dir) == [Path("./testDir/file.vid")]
+    assert get_content("image", dir) == [Path("./testDir/file.im")]

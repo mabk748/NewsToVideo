@@ -1,39 +1,34 @@
 from pathlib import Path
-import glob
+from moviepy.editor import VideoClip, ImageClip, CompositeVideoClip, concatenate_videoclips
+
 
 AUDIO_EXT = ["aud"]
 VIDEO_EXT = ["vid"]
 IMAGE_EXT = ["im"]
 
-def get_audio(path: Path):
+def Which_content(Type: str):
+    if Type == "audio": 
+        return AUDIO_EXT
+    elif Type == "video": 
+        return VIDEO_EXT
+    elif Type == "image":
+        return IMAGE_EXT
+    else:
+        raise ValueError("Type not supported")
+
+def get_content(type: str, path: Path):
+    exts = Which_content(type)
     files = []
-    for i in AUDIO_EXT:
+    for i in exts:
         found = list(path.glob(f"**/*.{i}"))
         print(found)
-        for f in found:
-            files.append(f)
-    print(files)
-    return files
-
-def get_video(path: Path):
-    files = []
-    for i in VIDEO_EXT:
-        found = list(path.glob(f"**/*.{i}"))
-        for f in found:
-            files.append(f)
-    return files
-
-def get_images(path: Path):
-    files = []
-    for i in IMAGE_EXT:
-        found = list(path.glob(f"**/*.{i}"))
         for f in found:
             files.append(f)
     return files
 
 class VideoAssembler:
-    def __init__(self, projectName: str) -> None:
-        self.name = projectName
+    def __init__(self, projectPath: Path) -> None:
+        self.projectPath = projectPath
         self.content = {
             "intro" : {},
             "segments" : [],
@@ -41,26 +36,34 @@ class VideoAssembler:
             "background": {}
         }
 
-    def get_intro(self, path: Path):
-        self.content["intro"]["video"] = get_video(path)
-        self.content["intro"]["audio"] = get_audio(path)
+    def get_videoParts(self):
+        ContentTypes = ["audio", "video", "image"]
+        for k in self.content.keys():
+            dirPath = self.projectPath / k
+            if dirPath.is_dir():
+                if k != "segments":
+                    for c in ContentTypes:
+                        cont = get_content(c, dirPath)
+                        if len(cont) > 0:
+                            self.content[k][c] = cont
+                else:
+                    for s in [x for x in dirPath.iterdir() if x.is_dir()]:
+                        self.content[k].append({})
+                        for c in ContentTypes:
+                            cont = get_content(c, s)
+                            if len(cont) > 0:
+                                self.content[k][-1][c] = cont
+            else:
+                raise NameError("Directory not found")
 
-    def get_segments(self, path: Path):
-        segments = [x for x in path.iterdir() if x.is_dir()]
-        for s in segments:
-            self.content["segments"].append({})
-            self.content["segments"][-1]["video"] = get_video(path)
-            self.content["segments"][-1]["audio"] = get_audio(path)
-            self.content["segments"][-1]["images"] = get_images(path)
-
-    def get_outro(self, path: Path):
-        self.content["outro"]["video"] = get_video(path)
-        self.content["outro"]["audio"] = get_audio(path)
-
-    def get_background(self, path: Path):
-        self.content["background"]["images"] = get_video(path)
-        self.content["background"]["audio"] = get_audio(path)
     
 class VideoEditer:
-    def __init__(self) -> None:
+    def __init__(self, videoName: str, videoContent: VideoAssembler) -> None:
+        self.videoName = videoName
+        self.videoContent = videoContent
+        self.videoParts = []
+
+    def generate_videoParts(self):
+        # Make intro
+
         pass
